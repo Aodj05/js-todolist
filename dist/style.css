@@ -135,6 +135,10 @@ img {
     visibility: visible;
 }
 
+.project {
+    margin-right: 0;
+}
+
 .add-project-popup {
     display: none;
     width: 100%;
@@ -200,6 +204,11 @@ img {
 .left-task-panel {
     display: flex;
     align-items: center;
+}
+
+.t-item {
+    font-size: 36px;
+    cursor: pointer;
 }
 
 .task-content {
