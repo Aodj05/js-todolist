@@ -1,6 +1,7 @@
 import { format } from "date-fns"
 import Storage from "./Storage"
 import Project from "./Project"
+import Task from "./Task"
 
 
 
@@ -18,7 +19,7 @@ export default class UI {
         Storage.getTodoList().getProjects().forEach((project) => {
             if(project.name !== 'Inbox' &&
                project.name !== 'Today' &&
-               project.name !== 'This Week') {
+               project.name !== 'This week') {
                 UI.createProject(project.name)
                }
         })
@@ -28,18 +29,19 @@ export default class UI {
 
     static loadTasks(projectName) {
         Storage.getTodoList().getProject(projectName).getTasks().forEach((task) => UI.createTask(task.name, task.dueDate))
-        if (projectName !== 'Today' && projectName !== 'This Week') {
+        if (projectName !== 'Today' && projectName !== 'This week') {
             UI.initAddTaskBtns()
         }
     }
 
     static loadProjectContent(projectName) {
-        const projectPreview = document. getElementById('project-preview')
+        const projectPreview = document.getElementById('project-preview')
         projectPreview.innerHTML = `<h1 id="project-name">${projectName}</h1>
                                     <div class="tasks-list" id="tasks-list"></div>`
         
-        if (projectName !== 'Today' && projectName !== 'This Week') {
+        if (projectName !== 'Today' && projectName !== 'This week') {
             projectPreview.innerHTML += `<button class="btn-add-task" id="btn-add-task">
+                                            <i class="plus">+</i>
                                           Add Task
                                         </button>
                                         <div class="add-task-popup" id="add-task-popup">
@@ -70,7 +72,7 @@ export default class UI {
                                         <span>${name}</span>
                                       </div>
                                       <div class="right-project-panel">
-                                        <i class="project"></i>
+                                        <i class="project">X</i>
                                       </div>
                                     </button>`
 
@@ -88,7 +90,7 @@ export default class UI {
                                   <div class="right-task-panel">
                                     <p class="due-date" id="due-date">${dueDate}</p>
                                     <input type="date" class="input-due-date" data-input-due-date>
-                                    <i class="project"></i>
+                                    <i class="project">X</i>
                                   </div>
                                 </button>`
 
@@ -118,11 +120,12 @@ export default class UI {
 
     static closeAllPopups() {
         UI.closeAddProjectPopup()
-        if ( document.getElementById('btn-add-task')) {
+        if (document.getElementById('btn-add-task')) {
             UI.closeAddTaskPopup()
         }
-        if ( document.getElementById('tasks-list') &&
-             document.getElementById('tasks-list').innerHTML !== '') {
+        if (document.getElementById('tasks-list') &&
+             document.getElementById('tasks-list').innerHTML !== ''
+             ) {
                 UI.closeAllInputs()
              }
     }
@@ -130,9 +133,9 @@ export default class UI {
     static closeAllInputs() {
         const taskBtns = document.querySelectorAll('[data-task-btn]')
 
-        taskBtns.forEach((button) => {
-            UI.closeRenameInput(button)
-            UI.closeSetDateInput(button)
+        taskBtns.forEach((btn) => {
+            UI.closeRenameInput(btn)
+            UI.closeSetDateInput(btn)
         })
     }
 
@@ -143,7 +146,7 @@ export default class UI {
     // Adding Projects
 
     static initAddProjectBtns() {
-        const addProjectBtn = document.getElementById('btn-add-projects')
+        const addProjectBtn = document.getElementById('btn-add-project')
         const addProjectPopupBtn = document.getElementById('btn-add-project-popup')
         const cancelProjectPopupBtn = document.getElementById('btn-cancel-project-popup')
         const addProjectPopupInput = document.getElementById('input-add-project-popup')
@@ -168,8 +171,8 @@ export default class UI {
         const addProjectBtn = document.getElementById('btn-add-project')
         const addProjectPopupInput = document.getElementById('input-add-project-popup')
 
-        addProjectPopup.classList.add('active')
-        addProjectBtn.classList.add('active')
+        addProjectPopup.classList.remove('active')
+        addProjectBtn.classList.remove('active')
         addProjectPopupInput.classList.value = ''
     }
 
@@ -203,12 +206,12 @@ export default class UI {
         const inboxProjectsBtn = document.getElementById('btn-inbox-projects')
         const todayProjectsBtn = document.getElementById('btn-today-projects')
         const weekProjectsBtn = document.getElementById('btn-week-projects')
-        const projectBtns = document.querySelectorAll('[data-project-button]')
+        const projectBtns = document.querySelectorAll('[data-project-btn]')
         
         inboxProjectsBtn.addEventListener('click', UI.openInboxTasks)
         todayProjectsBtn.addEventListener('click', UI.openTodayTasks)
         weekProjectsBtn.addEventListener('click', UI.openWeekTasks)
-        projectBtns.forEach((projectBtn) => 
+        projectBtns.forEach((projectBtn) =>
           projectBtn.addEventListener('click', UI.handleProjectBtn)
         )
     }
@@ -224,16 +227,17 @@ export default class UI {
 
     static openWeekTasks() {
         Storage.updateWeekProject()
-        UI.openProject('This Week', this)
+        UI.openProject('This week', this)
+  }
+
+  static handleProjectBtn(e) {
+    /* const projectName = this.children[0].children[1].textContent */
+    const projectName = this.textContent
+
+    if (e.target.classList.contains('project')) {
+      UI.deleteProject(projectName, this)
+      return
     }
-
-    static handleProjectBtn(e) {
-        const projectName = this.children[0].children[1].textContent
-
-        if (e.target.classList.contains('project')) {
-            UI.deleteProject(projectName, this)
-            return
-        }
 
         UI.openProject(projectName, this)
     }
@@ -256,6 +260,13 @@ export default class UI {
         UI.loadProjects()
     }
 
+    static openNav() {
+        const nave = document.getElementById('nav')
+
+        UI.closeAllPopups()
+        nave.classList.toggle('active')
+    }
+
     // Adding Task
 
     static initAddTaskBtns() {
@@ -264,9 +275,9 @@ export default class UI {
         const cancelTaskPopupBtn = document.getElementById('btn-cancel-task-popup')
         const addTaskPopupInput = document.getElementById('input-add-task-popup')
 
-        addTaskBtn.addEventListener('click', UI.openTaskPopup)
+        addTaskBtn.addEventListener('click', UI.openAddTaskPopup)
         addTaskPopupBtn.addEventListener('click', UI.addTask)
-        cancelTaskPopupBtn.addEventListener('click', UI.closeTaskPopup)
+        cancelTaskPopupBtn.addEventListener('click', UI.closeAddTaskPopup)
         addTaskPopupInput.addEventListener('keypress', UI.handleAddTaskPopupInput)
     }
 
@@ -317,8 +328,8 @@ export default class UI {
 
     static initTaskBtns() {
         const taskBtns = document.querySelectorAll('[data-task-btn]')
-        const taskNameInputs = document.querySelectorAll('[data-input-task-name]')
-        const dueDateInputs = document.querySelectorAll('[data-input-due-date]')
+        const taskNameInputs = document.querySelectorAll('[data-input-task-name')
+        const dueDateInputs = document.querySelectorAll('[data-input-due-date')
 
         taskBtns.forEach((taskBtn) =>
           taskBtn.addEventListener('click', UI.handleTaskBtn)
@@ -354,7 +365,7 @@ export default class UI {
         const taskName = taskBtn.children[0].children[1].textContent
 
         if (projectName === 'Today' || projectName === 'This week') {
-            const parentProjectName = taskName.split('(')[1].split('(')[0]
+            const parentProjectName = taskName.split('(')[1].split(')')[0]
             Storage.deleteTask(parentProjectName, taskName.split(' ')[0])
             if (projectName === 'Today') {
                 Storage.updateTodayProject()
@@ -373,7 +384,7 @@ export default class UI {
         const taskName = taskBtn.children[0].children[1].textContent
 
         if (projectName === 'Today' || projectName === 'This week') {
-            const mainProjectName = taskName.split('(')[1].split('(')[0]
+            const mainProjectName = taskName.split('(')[1].split(')')[0]
             Storage.deleteTask(mainProjectName, taskName)
         }
         Storage.deleteTask(projectName, taskName)
@@ -424,8 +435,8 @@ export default class UI {
             return
         }
 
-        if (projectName === 'Today' || projectName === 'This Week') {
-            const mainProjectName = taskName.split('(')[1].split('(')[0]
+        if (projectName === 'Today' || projectName === 'This week') {
+            const mainProjectName = taskName.split('(')[1].split(')')[0]
             const mainTaskName = taskName.split(' ')[0]
             Storage.renameTask(projectName, taskName, `${newTaskName} (${mainProjectName})`)
             Storage.renameTask(mainProjectName, mainTaskName, newTaskName)
@@ -461,7 +472,7 @@ export default class UI {
         const newDueDate = format(new Date(this.value), 'MM/dd/yyyy')
 
         if (projectName === 'Today' || projectName === 'This week') {
-            const mainProjectName = taskName.split('(')[1].split('(')[0]
+            const mainProjectName = taskName.split('(')[1].split(')')[0]
             const mainTaskName = taskName.split(' (')[0]
             Storage.setTaskDate(projectName, taskName, newDueDate)
             Storage.setTaskDate(mainProjectName, mainTaskName, newDueDate)

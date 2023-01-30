@@ -45,6 +45,10 @@ button {
     border-radius: 5px;
 }
 
+i {
+    margin-right: 10px;
+}
+
 img {
     height: 100px;
     width: 100px;
